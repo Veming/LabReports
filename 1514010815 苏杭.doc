@@ -1,0 +1,168 @@
+﻿import xlrd
+import xlwt
+from decimal import Decimal,getcontext
+
+__name__ = '__main__'
+
+wine1Path = '/home/zune/桌面/lab1_2/wine1.xlsx'
+wine2Path = '/home/zune/桌面/lab1_2/wine2.xlsx'
+wine3Path = '/home/zune/桌面/lab1_2/wine3.xlsx'
+
+wine1file = xlrd.open_workbook(wine1Path)
+wine2file = xlrd.open_workbook(wine2Path)
+wine3file = xlwt.Workbook()
+
+wine1table = wine1file.sheet_by_name('Sheet1')
+wine2table = wine2file.sheet_by_name('Sheet1')
+wine3table = wine3file.add_sheet("Sheet",cell_overwrite_ok=True)
+
+# 写入数据 .write(行，列，value)
+wine3table.write(0,0,'ID')
+wine3table.write(0,1,'Alcohol')
+wine3table.write(0,2,'Proline')
+wine3table.write(0,3,'AlcoholQuality')
+
+winetable = wine1file.sheets()[0]
+
+# 获取行数和列数
+# 　nrows = table.nrows
+# ncols = table.ncols
+
+wine1Nbr = wine1table.nrows
+wine2Nbr = wine2table.nrows
+
+maxProline = 0
+minProline = 2000
+
+maxAlcohol = 0
+minAlcohol = 100
+
+for i in range(1,wine1Nbr):
+if maxAlcohol < wine1table.row_values(i)[1]:
+maxAlcohol = wine1table.row_values(i)[1]
+pass
+if minAlcohol > wine1table.row_values(i)[1]:
+minAlcohol = wine1table.row_values(i)[1]
+pass
+pass
+
+for i in range (1,wine2Nbr):
+if maxProline < wine2table.row_values(i)[8]:
+maxProline = wine2table.row_values(i)[8]
+pass
+if minProline > wine2table.row_values(i)[8]:
+minProline = wine2table.row_values(i)[8]
+pass
+pass
+
+for i in range(1,wine1Nbr):
+# 获取酒的id
+ID = int(wine1table.row_values(i)[0])
+wine3table.write(i,0,ID) 
+# 对酒精的读数进行标准化
+alcohol = (wine1table.row_values(i)[1] - minAlcohol)/(maxAlcohol - minAlcohol)
+wine3table.write(i,1,alcohol)
+# 对脯氨酸的数据进行标准化
+proline = (wine2table.row_values(i)[8] - minProline)/(maxProline - minProline)
+wine3table.write(i,2,proline)
+# 酒的质量
+weight = int(wine1table.row_values(i)[5])
+# 计算酒精的质量
+alcoholQuality = round(wine1table.row_values(i)[1] * weight * 0.01, 4)
+wine3table.write(i,3,alcoholQuality)
+# print('ID:',ID)
+# print('Alcohol:',alcohol)
+# print('Weight:',weight)
+# print('alcoholQuality:',alcoholQuality)
+# print()
+
+# print(winetable.row(1)[0].value)
+# print('MaxAlochol:',maxAlcohol,'\nMinAlochol:', minAlcohol,'\n')
+# print('maxProline:',maxProline,'\nminProline:', minProline)
+
+wine3file.save(wine3Path)
+
+
+import random ,math
+import xlwt,xlrd
+
+# 生成随机数列
+# def getRandomBool():
+# line = []
+# for i in range(0,5):
+# line.append(random.randrange(0,2))
+# return line
+
+# def getRandom():
+# line = []
+# for i in range(0,5):
+# line.append(random.randrange(0,10))
+# return line
+
+# table = xlwt.Workbook(encoding='UTF-8')
+# sheet = table.add_sheet('lab')
+
+# sheet.write(0,0,'A')
+# sheet.write(0,1,'B')
+# sheet.write(0,2,'C')
+
+# for i in range(1,11):
+# sheet.write(i,0,str(getRandomBool()))
+# sheet.write(i,1,str(getRandom()))
+# sheet.write(i,2,str(getRandom()))
+
+# table.save('lab_DataSet.xls')
+
+xa = [0,0,0,1,1,0]
+xb = [3,5,2,6,7]
+xc = [4,0,3,2,7]
+
+ya = [1,1,0,1,0,1]
+yb = [1,2,3,4,5]
+yc = [0,1,5,8,3]
+
+def smc(list1,list2):
+f00 = 0
+f01 = 0
+f10 = 0
+f11 = 0
+for i in range(0,6):
+if list1[i] == 0 and list2[i] == 0 :
+f00 += 1
+if list1[i] == 1 and list2[i] == 0 :
+f10 += 1
+if list1[i] == 0 and list2[i] == 1 :
+f01 += 1
+if list1[i] == 1 and list2[i] == 1 :
+f11 += 1
+pass
+return (f11 + f00)/(f11+f00+f01+f00)
+
+def em(list1,list2):
+result = 0
+for i in range(0,5):
+num = pow(list1[i]-list2[i], 2)
+result += num
+# print (result)
+return 1/(1+pow(result,0.5))
+
+def cs(x, y):
+xv = 0
+yv = 0
+xyv = 0
+
+for i in range(0,5):
+xv += pow(x[i],2) 
+yv += pow(y[i],2)
+xyv += (x[i] * y[i])
+# print (xv,":",yv,":",xyv)
+# xyv = pow(xyv,1/2)
+return xyv/pow(xv*yv,0.5)
+
+# print(smc(xa,ya))
+# print(em(xb,yb))
+# print(cs(xc,yc))
+print('两组数据的相似度为:',0.3*smc(xa,ya) + 0.2*em(xb,yb) + 0.5*cs(xc,yc))
+
+
+
