@@ -1,0 +1,124 @@
+import math
+import xlrd
+
+__name__ = '__main__'
+
+def getData(filePath):
+    data =[]
+    workbook = xlrd.open_workbook(filePath)
+    table = workbook.sheet_by_index(0)
+    nrows = table.nrows
+    # ncols = table.ncols
+    for i in range(0,nrows):
+        data.append(table.row_values(i))
+    return data
+
+# 返回商最小的列
+def entropy(dataList, colList = 'all',rowList = 'all'):
+    if len(rowList) == 0:
+        return
+    elif type(rowList) == str and rowList == 'all':
+        rows = len(dataList)
+        cols = len(dataList[0])
+        # print ('rows',rows)
+        # print ('cols',cols)
+        minE = 9999
+        minECol = -1
+        for col in range(0,cols-1):
+            colResults = {}
+            for row in dataList:
+                key = row[col]+':'+row[-1]
+                if colResults.get(key) == None:
+                    colResults[key] = 1
+                else :
+                    colResults[key] += 1
+            e = 0
+            for r in colResults:
+                # print(r,':',colResults.get(r))
+                p = colResults.get(r)/rows
+                e -= math.log2(p)*p
+                if minE > e:
+                    minE = e
+                    minECol = col
+            # print('minE :',minE,'\n')
+        return minECol
+    else:
+        rows = len(rowList)
+        cols = len(colList)
+        # print ('rows',rows)
+        # print ('cols',cols)
+        minE = 9999
+        minECol = -1
+        for col in colList:
+            colResults = {}
+            for row in dataList:
+                key = row[col]+':'+row[-1]
+                if colResults.get(key) == None:
+                    colResults[key] = 1
+                else :
+                    colResults[key] += 1
+            e = 0
+            for r in colResults:
+                # print(r,':',colResults.get(r))
+                p = colResults.get(r)/rows
+                e -= math.log2(p)*p
+                if minE > e:
+                    minE = e
+                    minECol = col
+                    if minE == 0 :
+                        return None
+            # print('minE :',minE,'\n')
+        return minECol
+
+def showDict(dit):
+    for i in dit:
+        print(i,':',dit.get(i))
+
+
+def Generate_decision_tree(data):
+    tree = []
+    availableCols = set()
+    rows = len(data)
+    cols = len(data[0])
+    for i in range(0,cols-1):
+        availableCols.add(i)
+    c = entropy(data)
+    tree = {'rNode':{'fnode':None,'cnode':set(),'dataNo':set(),'name':'rnode'}}
+    workList = []
+    # availableCols.remove(c)
+    for i in range(0,rows):
+        if tree.get(data[i][c]) == None:
+            node = {'fnode':'root','cnode':set(),'dataNo':set(),'col':set(),'name':data[i][c]}
+            node['dataNo'].add(i)
+            node['col'].add(c)
+            tree[data[i][c]] = node
+            # print(data[i][c])
+            workList.append(node)
+        else:
+            tree[data[i][c]]['dataNo'].add(i)
+    for worker in workList:
+        col = worker['col']
+        node = tree[worker['name']]['cnode']
+        c = entropy(data, list(availableCols-col),list(node))
+        if c == None :
+            continue
+        col.add(c)
+        for n in node:
+            if tree.get(data[n][c]) == None:
+                node_ = {'fnode':worker,'conde':set(),'dataNo':set(),'col':set(),'name':data[n][c]}
+                node_['dataNo'].add(n)
+                node_['col'].add(c)
+                tree[data[n][c]] = node_
+                workList.append(node_)
+            else:
+                tree[data[n][c]]['dataNo'].add(n)
+    return tree    
+
+def main():
+    data = getData("play.xlsx")
+    tree = Generate_decision_tree(data[1:])
+    print(tree)
+
+
+if __name__ == '__main__':
+    main()
